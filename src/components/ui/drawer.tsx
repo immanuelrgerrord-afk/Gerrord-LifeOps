@@ -28,7 +28,6 @@ function FormDrawer({ onOpenChange, ...props }: React.ComponentProps<typeof Draw
   return (
     <Drawer
       dismissible={false}
-      fixed
       handleOnly
       modal
       repositionInputs
@@ -87,7 +86,7 @@ const FormDrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex min-h-0 max-h-[92dvh] flex-col overflow-hidden rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex min-h-0 max-h-[92svh] flex-col overflow-hidden rounded-t-[10px] border bg-background",
         className,
       )}
       onPointerDownOutside={(event) => {
