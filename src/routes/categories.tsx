@@ -8,7 +8,7 @@ import {
   FormDrawerBody,
   FormDrawerContent,
   FormDrawerFooter,
-  DrawerHeader,
+  FormDrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
@@ -150,8 +150,10 @@ function CategorySheet({
   return (
     <FormDrawer open={open} onOpenChange={onOpenChange}>
       <FormDrawerContent className="mx-auto max-w-md">
-        <DrawerHeader><DrawerTitle>{editing ? "Edit category" : "New category"}</DrawerTitle></DrawerHeader>
-        <FormDrawerBody className="space-y-3 px-4">
+        <FormDrawerHeader onClose={() => onOpenChange(false)}>
+          <DrawerTitle>{editing ? "Edit category" : "New category"}</DrawerTitle>
+        </FormDrawerHeader>
+        <FormDrawerBody className="space-y-3 px-4 pb-2">
           <div>
             <Label>Type</Label>
             <Select value={kind} onValueChange={(v) => setKind(v as never)}>

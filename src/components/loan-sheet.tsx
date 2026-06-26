@@ -4,7 +4,7 @@ import {
   FormDrawerBody,
   FormDrawerContent,
   FormDrawerFooter,
-  DrawerHeader,
+  FormDrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
@@ -81,11 +81,11 @@ export function LoanSheet({
   return (
     <FormDrawer open={open} onOpenChange={onOpenChange}>
       <FormDrawerContent className="mx-auto max-w-md">
-        <DrawerHeader>
+        <FormDrawerHeader onClose={() => onOpenChange(false)}>
           <DrawerTitle>{editing ? "Edit loan" : "Add loan"}</DrawerTitle>
           <DrawerDescription>EMI is auto-calculated and added to each month.</DrawerDescription>
-        </DrawerHeader>
-        <FormDrawerBody className="space-y-3 px-4">
+        </FormDrawerHeader>
+        <FormDrawerBody className="space-y-3 px-4 pb-2">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Type</Label>

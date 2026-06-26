@@ -9,7 +9,7 @@ import {
   FormDrawerBody,
   FormDrawerContent,
   FormDrawerFooter,
-  DrawerHeader,
+  FormDrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
@@ -152,11 +152,11 @@ function GoalSheet({
   return (
     <FormDrawer open={open} onOpenChange={onOpenChange}>
       <FormDrawerContent className="mx-auto max-w-md">
-        <DrawerHeader>
+        <FormDrawerHeader onClose={() => onOpenChange(false)}>
           <DrawerTitle>{editing ? "Edit goal" : "New goal"}</DrawerTitle>
           <DrawerDescription>Set a clear money target.</DrawerDescription>
-        </DrawerHeader>
-        <FormDrawerBody className="space-y-3 px-4">
+        </FormDrawerHeader>
+        <FormDrawerBody className="space-y-3 px-4 pb-2">
           <div>
             <Label htmlFor="gname">Goal name</Label>
             <Input id="gname" value={name} onChange={e => setName(e.target.value)} placeholder="Emergency fund" />

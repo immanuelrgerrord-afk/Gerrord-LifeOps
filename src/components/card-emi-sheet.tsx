@@ -4,7 +4,7 @@ import {
   FormDrawerBody,
   FormDrawerContent,
   FormDrawerFooter,
-  DrawerHeader,
+  FormDrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
@@ -66,11 +66,11 @@ export function CardEmiSheet({
   return (
     <FormDrawer open={open} onOpenChange={onOpenChange}>
       <FormDrawerContent className="mx-auto max-w-md">
-        <DrawerHeader>
+        <FormDrawerHeader onClose={() => onOpenChange(false)}>
           <DrawerTitle>{editing ? "Edit card EMI" : "Add card EMI"}</DrawerTitle>
           <DrawerDescription>Auto-added to expenses each month.</DrawerDescription>
-        </DrawerHeader>
-        <FormDrawerBody className="space-y-3 px-4">
+        </FormDrawerHeader>
+        <FormDrawerBody className="space-y-3 px-4 pb-2">
           <div>
             <Label htmlFor="merchant">Merchant / item</Label>
             <Input id="merchant" value={merchant} onChange={e => setMerchant(e.target.value)} placeholder="iPhone 16 Pro" />

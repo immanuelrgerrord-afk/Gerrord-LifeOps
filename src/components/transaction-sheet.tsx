@@ -4,7 +4,7 @@ import {
   FormDrawerBody,
   FormDrawerContent,
   FormDrawerFooter,
-  DrawerHeader,
+  FormDrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
@@ -94,11 +94,11 @@ export function TransactionSheet({
   return (
     <FormDrawer open={open} onOpenChange={onOpenChange}>
       <FormDrawerContent className="mx-auto max-w-md">
-        <DrawerHeader>
+        <FormDrawerHeader onClose={() => onOpenChange(false)}>
           <DrawerTitle>{editing ? "Edit" : "Add"} {kind === "income" ? "income" : "expense"}</DrawerTitle>
           <DrawerDescription>{kind === "income" ? "Money coming in" : "Money going out"}</DrawerDescription>
-        </DrawerHeader>
-        <FormDrawerBody className="space-y-3 px-4">
+        </FormDrawerHeader>
+        <FormDrawerBody className="space-y-3 px-4 pb-2">
           <div>
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={kind === "income" ? "Salary" : "Dinner with friends"} />

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { X } from "lucide-react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "@/lib/utils";
@@ -86,7 +87,7 @@ const FormDrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex min-h-0 max-h-[92dvh] flex-col overflow-hidden rounded-t-[10px] border bg-background",
         className,
       )}
       onPointerDownOutside={(event) => {
@@ -108,25 +109,17 @@ const FormDrawerContent = React.forwardRef<
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] shrink-0 rounded-full bg-muted" />
-      {children}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ));
 FormDrawerContent.displayName = "FormDrawerContent";
 
 /** Scrollable form fields — keeps the action footer visible when the keyboard is open. */
-const FormDrawerBody = ({ className, onFocus, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+const FormDrawerBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("min-h-0 flex-1 overflow-y-auto overscroll-contain", className)}
-    onFocus={(event) => {
-      onFocus?.(event);
-      const target = event.target;
-      if (target instanceof HTMLElement) {
-        requestAnimationFrame(() => {
-          target.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        });
-      }
-    }}
+    data-vaul-no-drag
+    className={cn("min-h-0 flex-1 touch-pan-y overflow-y-auto", className)}
     {...props}
   />
 );
@@ -143,6 +136,29 @@ const FormDrawerFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivE
   />
 );
 FormDrawerFooter.displayName = "FormDrawerFooter";
+
+/** Header with an explicit close control for mobile form drawers. */
+function FormDrawerHeader({
+  onClose,
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { onClose: () => void }) {
+  return (
+    <div className={cn("relative shrink-0 space-y-1.5 p-4 pr-12 text-left", className)} {...props}>
+      {children}
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+FormDrawerHeader.displayName = "FormDrawerHeader";
 
 const DrawerHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn("grid shrink-0 gap-1.5 p-4 text-center sm:text-left", className)} {...props} />
@@ -189,6 +205,7 @@ export {
   FormDrawerContent,
   FormDrawerBody,
   FormDrawerFooter,
+  FormDrawerHeader,
   DrawerHeader,
   DrawerFooter,
   DrawerTitle,
