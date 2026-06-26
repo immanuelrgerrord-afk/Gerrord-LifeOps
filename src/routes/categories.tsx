@@ -3,7 +3,14 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { GlassCard } from "@/components/glass-card";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import {
+  FormDrawer,
+  FormDrawerBody,
+  FormDrawerContent,
+  FormDrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -141,10 +148,10 @@ function CategorySheet({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-md">
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <FormDrawerContent className="mx-auto max-w-md">
         <DrawerHeader><DrawerTitle>{editing ? "Edit category" : "New category"}</DrawerTitle></DrawerHeader>
-        <div className="space-y-3 px-4 pb-6">
+        <FormDrawerBody className="space-y-3 px-4">
           <div>
             <Label>Type</Label>
             <Select value={kind} onValueChange={(v) => setKind(v as never)}>
@@ -174,11 +181,13 @@ function CategorySheet({
               ))}
             </div>
           </div>
+        </FormDrawerBody>
+        <FormDrawerFooter>
           <Button onClick={save} className="h-12 w-full rounded-2xl text-base font-semibold">
             {editing ? "Save changes" : "Add category"}
           </Button>
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </FormDrawerFooter>
+      </FormDrawerContent>
+    </FormDrawer>
   );
 }

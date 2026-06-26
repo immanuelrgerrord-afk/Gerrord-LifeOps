@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import {
+  FormDrawer,
+  FormDrawerBody,
+  FormDrawerContent,
+  FormDrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -71,13 +79,13 @@ export function LoanSheet({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-md">
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <FormDrawerContent className="mx-auto max-w-md">
         <DrawerHeader>
           <DrawerTitle>{editing ? "Edit loan" : "Add loan"}</DrawerTitle>
           <DrawerDescription>EMI is auto-calculated and added to each month.</DrawerDescription>
         </DrawerHeader>
-        <div className="space-y-3 px-4 pb-6">
+        <FormDrawerBody className="space-y-3 px-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Type</Label>
@@ -123,11 +131,13 @@ export function LoanSheet({
               <p className="text-2xl font-black tabular">{formatINR(emi)}</p>
             </div>
           )}
+        </FormDrawerBody>
+        <FormDrawerFooter>
           <Button onClick={save} className="h-12 w-full rounded-2xl text-base font-semibold">
             {editing ? "Save changes" : "Add loan"}
           </Button>
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </FormDrawerFooter>
+      </FormDrawerContent>
+    </FormDrawer>
   );
 }

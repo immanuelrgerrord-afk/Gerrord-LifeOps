@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import {
+  FormDrawer,
+  FormDrawerBody,
+  FormDrawerContent,
+  FormDrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -56,13 +64,13 @@ export function CardEmiSheet({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-md">
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <FormDrawerContent className="mx-auto max-w-md">
         <DrawerHeader>
           <DrawerTitle>{editing ? "Edit card EMI" : "Add card EMI"}</DrawerTitle>
           <DrawerDescription>Auto-added to expenses each month.</DrawerDescription>
         </DrawerHeader>
-        <div className="space-y-3 px-4 pb-6">
+        <FormDrawerBody className="space-y-3 px-4">
           <div>
             <Label htmlFor="merchant">Merchant / item</Label>
             <Input id="merchant" value={merchant} onChange={e => setMerchant(e.target.value)} placeholder="iPhone 16 Pro" />
@@ -91,11 +99,13 @@ export function CardEmiSheet({
             <Label htmlFor="start">Start date</Label>
             <Input id="start" type="date" value={start} onChange={e => setStart(e.target.value)} />
           </div>
+        </FormDrawerBody>
+        <FormDrawerFooter>
           <Button onClick={save} className="h-12 w-full rounded-2xl text-base font-semibold">
             {editing ? "Save changes" : "Add card EMI"}
           </Button>
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </FormDrawerFooter>
+      </FormDrawerContent>
+    </FormDrawer>
   );
 }

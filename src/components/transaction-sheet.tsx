@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import {
+  FormDrawer,
+  FormDrawerBody,
+  FormDrawerContent,
+  FormDrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -84,13 +92,13 @@ export function TransactionSheet({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-md">
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <FormDrawerContent className="mx-auto max-w-md">
         <DrawerHeader>
           <DrawerTitle>{editing ? "Edit" : "Add"} {kind === "income" ? "income" : "expense"}</DrawerTitle>
           <DrawerDescription>{kind === "income" ? "Money coming in" : "Money going out"}</DrawerDescription>
         </DrawerHeader>
-        <div className="space-y-3 px-4 pb-6">
+        <FormDrawerBody className="space-y-3 px-4">
           <div>
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={kind === "income" ? "Salary" : "Dinner with friends"} />
@@ -129,11 +137,13 @@ export function TransactionSheet({
               <Input id="months" type="number" min="1" value={months} onChange={(e) => setMonths(e.target.value)} placeholder="Leave blank = forever" />
             </div>
           )}
+        </FormDrawerBody>
+        <FormDrawerFooter>
           <Button onClick={save} className="h-12 w-full rounded-2xl text-base font-semibold">
             {editing ? "Save changes" : "Add entry"}
           </Button>
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </FormDrawerFooter>
+      </FormDrawerContent>
+    </FormDrawer>
   );
 }

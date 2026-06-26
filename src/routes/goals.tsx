@@ -4,7 +4,15 @@ import { Plus, Target as TargetIcon, Pencil, Trash2 } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { GlassCard } from "@/components/glass-card";
 import { EmptyState } from "@/components/empty-state";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import {
+  FormDrawer,
+  FormDrawerBody,
+  FormDrawerContent,
+  FormDrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -142,13 +150,13 @@ function GoalSheet({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-md">
+    <FormDrawer open={open} onOpenChange={onOpenChange}>
+      <FormDrawerContent className="mx-auto max-w-md">
         <DrawerHeader>
           <DrawerTitle>{editing ? "Edit goal" : "New goal"}</DrawerTitle>
           <DrawerDescription>Set a clear money target.</DrawerDescription>
         </DrawerHeader>
-        <div className="space-y-3 px-4 pb-6">
+        <FormDrawerBody className="space-y-3 px-4">
           <div>
             <Label htmlFor="gname">Goal name</Label>
             <Input id="gname" value={name} onChange={e => setName(e.target.value)} placeholder="Emergency fund" />
@@ -167,11 +175,13 @@ function GoalSheet({
             <Label htmlFor="deadline">Deadline</Label>
             <Input id="deadline" type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
           </div>
+        </FormDrawerBody>
+        <FormDrawerFooter>
           <Button onClick={save} className="h-12 w-full rounded-2xl text-base font-semibold">
             {editing ? "Save changes" : "Add goal"}
           </Button>
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </FormDrawerFooter>
+      </FormDrawerContent>
+    </FormDrawer>
   );
 }
