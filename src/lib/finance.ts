@@ -1,9 +1,26 @@
-import { ymAdd, ymOf } from "./format";
+function ymAdd(ym: string, delta: number): string {
+  const [year, month] = ym.split("-").map(Number);
+  const date = new Date(year, month - 1 + delta, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function ymOf(iso: string): string {
+  const date = new Date(iso);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
 
 /** Calendar due date for installment index (0-based) anchored to start date's day-of-month. */
 export function emiDueDate(startDateIso: string, installmentIndex: number): Date {
-  const start = new Date(startDateIso);
-  return new Date(start.getFullYear(), start.getMonth() + installmentIndex, start.getDate());
+  const dateOnly = startDateIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const start = dateOnly
+    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    : new Date(startDateIso);
+  const targetMonth = new Date(start.getFullYear(), start.getMonth() + installmentIndex, 1);
+  const day = Math.min(
+    start.getDate(),
+    new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate(),
+  );
+  return new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day);
 }
 
 /** Reference date for loan/EMI status as of a selected month (capped at today). */
@@ -37,7 +54,15 @@ export function emisPaidCount(startDateIso: string, tenureMonths: number, asOf: 
 }
 
 export function calcEMI(principal: number, annualRatePct: number, months: number): number {
-  if (months <= 0) return 0;
+  if (
+    !Number.isFinite(principal) ||
+    principal <= 0 ||
+    !Number.isFinite(annualRatePct) ||
+    annualRatePct < 0 ||
+    !Number.isFinite(months) ||
+    months <= 0
+  )
+    return 0;
   const r = annualRatePct / 12 / 100;
   if (r === 0) return principal / months;
   const emi = (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
@@ -156,7 +181,8 @@ export function computeCardEmiState(
     monthsRemaining,
     totalPaid: monthsPaid * emiAmount,
     remainingAmount: monthsRemaining * emiAmount,
-    nextEmiDate: monthsPaid < tenureMonths ? emiDueDate(startDateIso, monthsPaid).toISOString() : null,
+    nextEmiDate:
+      monthsPaid < tenureMonths ? emiDueDate(startDateIso, monthsPaid).toISOString() : null,
     endDate: emiDueDate(startDateIso, tenureMonths - 1).toISOString(),
   };
 }
@@ -219,7 +245,7 @@ export function simulatePrepayment(
     else lastDueIndex = dueIndex;
     const interest = balance * r;
     const payment = emi + extraMonthly;
-    let princ = Math.min(balance, Math.max(0, payment - interest));
+    const princ = Math.min(balance, Math.max(0, payment - interest));
     balance = Math.max(0, balance - princ);
     balance = applyLump(i < baseline.length ? i : dueIndex, balance);
     totalInterestPaidInFuture += interest;

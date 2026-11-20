@@ -1,14 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Repeat, ArrowDownRight, ArrowUpRight, Pencil } from "lucide-react";
+import { Plus, Trash2, Repeat, ArrowDownRight, ArrowUpRight, Pencil, Upload } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { MonthSwitcher } from "@/components/month-switcher";
 import { GlassCard } from "@/components/glass-card";
 import { EmptyState } from "@/components/empty-state";
 import { TransactionSheet } from "@/components/transaction-sheet";
+import { TransactionImport } from "@/components/transaction-import";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useStore } from "@/lib/store";
-import { incomeForMonth, manualExpensesForMonth, loanEmisForMonth, cardEmisForMonth, summarizeMonth } from "@/lib/aggregate";
+import {
+  incomeForMonth,
+  manualExpensesForMonth,
+  loanEmisForMonth,
+  cardEmisForMonth,
+  summarizeMonth,
+} from "@/lib/aggregate";
 import { formatINR, formatDate } from "@/lib/format";
 import { getDb, type Income, type Expense } from "@/lib/db";
 import { toast } from "sonner";
@@ -17,7 +24,10 @@ export const Route = createFileRoute("/transactions")({
   head: () => ({
     meta: [
       { title: "Money — LifeOps" },
-      { name: "description", content: "Track every rupee in and out — income, expenses, EMIs and recurring bills." },
+      {
+        name: "description",
+        content: "Track every rupee in and out — income, expenses, EMIs and recurring bills.",
+      },
     ],
   }),
   component: TransactionsPage,
@@ -28,6 +38,7 @@ function TransactionsPage() {
   const [tab, setTab] = useState<"expense" | "income">("expense");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<Income | Expense | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const summary = useMemo(
     () => summarizeMonth(ym, data.income, data.expense, data.loan, data.cardemi),
@@ -35,11 +46,15 @@ function TransactionsPage() {
   );
 
   const incomeItems = useMemo(
-    () => incomeForMonth(data.income, ym).sort((a, b) => a.effectiveDate < b.effectiveDate ? 1 : -1),
+    () =>
+      incomeForMonth(data.income, ym).sort((a, b) => (a.effectiveDate < b.effectiveDate ? 1 : -1)),
     [data.income, ym],
   );
   const manualExpenseItems = useMemo(
-    () => manualExpensesForMonth(data.expense, ym).sort((a, b) => a.effectiveDate < b.effectiveDate ? 1 : -1),
+    () =>
+      manualExpensesForMonth(data.expense, ym).sort((a, b) =>
+        a.effectiveDate < b.effectiveDate ? 1 : -1,
+      ),
     [data.expense, ym],
   );
   const loanEmis = useMemo(() => loanEmisForMonth(data.loan, ym), [data.loan, ym]);
@@ -54,21 +69,36 @@ function TransactionsPage() {
   }
 
   const chips = useMemo(() => {
-    const incomeMonthly = incomeItems.filter(i => i.item.recurrence === "monthly").length;
-    const incomeOneTime = incomeItems.filter(i => i.item.recurrence === "one_time").length;
-    const expenseMonthly = manualExpenseItems.filter(i => i.item.recurrence === "monthly").length;
-    const expenseOneTime = manualExpenseItems.filter(i => i.item.recurrence === "one_time").length;
-    return { incomeMonthly, incomeOneTime, expenseMonthly, expenseOneTime, loanEmi: loanEmis.length, cardEmi: cardEmis.length };
+    const incomeMonthly = incomeItems.filter((i) => i.item.recurrence === "monthly").length;
+    const incomeOneTime = incomeItems.filter((i) => i.item.recurrence === "one_time").length;
+    const expenseMonthly = manualExpenseItems.filter((i) => i.item.recurrence === "monthly").length;
+    const expenseOneTime = manualExpenseItems.filter(
+      (i) => i.item.recurrence === "one_time",
+    ).length;
+    return {
+      incomeMonthly,
+      incomeOneTime,
+      expenseMonthly,
+      expenseOneTime,
+      loanEmi: loanEmis.length,
+      cardEmi: cardEmis.length,
+    };
   }, [incomeItems, manualExpenseItems, loanEmis, cardEmis]);
 
   return (
     <PageShell title="Money" subtitle="What flowed in and out">
-      <div className="mb-3"><MonthSwitcher /></div>
+      <div className="mb-3">
+        <MonthSwitcher />
+      </div>
 
       <div className="grid grid-cols-3 gap-2">
         <MiniStat label="Income" value={formatINR(summary.income)} accent="emerald" />
         <MiniStat label="Spent" value={formatINR(summary.totalExpenses)} accent="rose" />
-        <MiniStat label="Net" value={formatINR(summary.netSavings)} accent={summary.netSavings >= 0 ? "royal" : "rose"} />
+        <MiniStat
+          label="Net"
+          value={formatINR(summary.netSavings)}
+          accent={summary.netSavings >= 0 ? "royal" : "rose"}
+        />
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -81,11 +111,25 @@ function TransactionsPage() {
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as never)} className="mt-4">
+        <div className="mb-3 flex justify-end">
+          <button
+            onClick={() => setImportOpen(true)}
+            className="inline-flex h-9 items-center gap-2 rounded-xl border px-3 text-sm font-medium hover:bg-foreground/5"
+          >
+            <Upload className="h-4 w-4" /> Paste or import
+          </button>
+        </div>
         <TabsList className="glass grid h-12 w-full grid-cols-2 rounded-2xl p-1">
-          <TabsTrigger value="expense" className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose/30 data-[state=active]:to-rose/10 data-[state=active]:text-foreground">
+          <TabsTrigger
+            value="expense"
+            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose/30 data-[state=active]:to-rose/10 data-[state=active]:text-foreground"
+          >
             <ArrowUpRight className="mr-1.5 h-4 w-4" /> Expenses
           </TabsTrigger>
-          <TabsTrigger value="income" className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald/30 data-[state=active]:to-emerald/10 data-[state=active]:text-foreground">
+          <TabsTrigger
+            value="income"
+            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald/30 data-[state=active]:to-emerald/10 data-[state=active]:text-foreground"
+          >
             <ArrowDownRight className="mr-1.5 h-4 w-4" /> Income
           </TabsTrigger>
         </TabsList>
@@ -126,8 +170,13 @@ function TransactionsPage() {
                   sub={e.item.category}
                   amount={-e.amount}
                   date={e.effectiveDate}
-                  badge={e.item.recurrence === "monthly" ? <AutoBadge label="Monthly" icon /> : undefined}
-                  onEdit={() => { setEditing(e.item); setSheetOpen(true); }}
+                  badge={
+                    e.item.recurrence === "monthly" ? <AutoBadge label="Monthly" icon /> : undefined
+                  }
+                  onEdit={() => {
+                    setEditing(e.item);
+                    setSheetOpen(true);
+                  }}
                   onDelete={() => remove("expense", e.item.id)}
                 />
               ))}
@@ -150,8 +199,13 @@ function TransactionsPage() {
                 sub={e.item.category}
                 amount={+e.amount}
                 date={e.effectiveDate}
-                badge={e.item.recurrence === "monthly" ? <AutoBadge label="Monthly" icon /> : undefined}
-                onEdit={() => { setEditing(e.item); setSheetOpen(true); }}
+                badge={
+                  e.item.recurrence === "monthly" ? <AutoBadge label="Monthly" icon /> : undefined
+                }
+                onEdit={() => {
+                  setEditing(e.item);
+                  setSheetOpen(true);
+                }}
                 onDelete={() => remove("income", e.item.id)}
               />
             ))
@@ -159,14 +213,23 @@ function TransactionsPage() {
         </TabsContent>
       </Tabs>
 
-      <Fab onClick={() => { setEditing(null); setSheetOpen(true); }} />
+      <Fab
+        onClick={() => {
+          setEditing(null);
+          setSheetOpen(true);
+        }}
+      />
 
       <TransactionSheet
         open={sheetOpen}
-        onOpenChange={(o) => { setSheetOpen(o); if (!o) setEditing(null); }}
+        onOpenChange={(o) => {
+          setSheetOpen(o);
+          if (!o) setEditing(null);
+        }}
         kind={tab}
         editing={editing}
       />
+      <TransactionImport open={importOpen} onOpenChange={setImportOpen} />
     </PageShell>
   );
 }
@@ -178,10 +241,22 @@ function Chip({ label, tint }: { label: string; tint: "emerald" | "rose" | "roya
     royal: "bg-royal/15 text-royal",
     violet: "bg-violet/15 text-violet",
   };
-  return <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${tints[tint]}`}>{label}</span>;
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${tints[tint]}`}>
+      {label}
+    </span>
+  );
 }
 
-function MiniStat({ label, value, accent }: { label: string; value: string; accent: "emerald" | "rose" | "royal" }) {
+function MiniStat({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent: "emerald" | "rose" | "royal";
+}) {
   const tints = {
     emerald: "from-emerald/20 to-emerald/5",
     rose: "from-rose/20 to-rose/5",
@@ -189,7 +264,9 @@ function MiniStat({ label, value, accent }: { label: string; value: string; acce
   };
   return (
     <div className={`glass rounded-2xl bg-gradient-to-br ${tints[accent]} p-3`}>
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-1 truncate text-sm font-bold tabular tracking-tight">{value}</p>
     </div>
   );
@@ -205,10 +282,21 @@ function AutoBadge({ label, icon }: { label: string; icon?: boolean }) {
 }
 
 function Row({
-  title, sub, amount, date, badge, onEdit, onDelete,
+  title,
+  sub,
+  amount,
+  date,
+  badge,
+  onEdit,
+  onDelete,
 }: {
-  title: string; sub: string; amount: number; date: string; badge?: React.ReactNode;
-  onEdit?: () => void; onDelete?: () => void;
+  title: string;
+  sub: string;
+  amount: number;
+  date: string;
+  badge?: React.ReactNode;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const negative = amount < 0;
   return (
@@ -225,17 +313,24 @@ function Row({
         </div>
         <div className="text-right">
           <p className={`tabular text-sm font-bold ${negative ? "text-rose" : "text-emerald"}`}>
-            {negative ? "−" : "+"}{formatINR(Math.abs(amount))}
+            {negative ? "−" : "+"}
+            {formatINR(Math.abs(amount))}
           </p>
           {(onEdit || onDelete) && (
             <div className="mt-1 flex justify-end gap-1">
               {onEdit && (
-                <button onClick={onEdit} className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:bg-foreground/5 hover:text-foreground">
+                <button
+                  onClick={onEdit}
+                  className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
               )}
               {onDelete && (
-                <button onClick={onDelete} className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:bg-rose/15 hover:text-rose">
+                <button
+                  onClick={onDelete}
+                  className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:bg-rose/15 hover:text-rose"
+                >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               )}

@@ -58,6 +58,15 @@ export interface Goal {
   createdAt: string;
 }
 
+export interface MonthlyBudget {
+  id: string;
+  ym: string;
+  categoryId: string;
+  amount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -79,27 +88,36 @@ interface FinanceDB extends DBSchema {
   loan: { key: string; value: Loan };
   cardemi: { key: string; value: CardEmi };
   goal: { key: string; value: Goal };
+  budget: { key: string; value: MonthlyBudget };
   category: { key: string; value: Category };
   settings: { key: string; value: Settings };
 }
 
 const DB_NAME = "lifeops-finance";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let _db: Promise<IDBPDatabase<FinanceDB>> | null = null;
 
 export function getDb(): Promise<IDBPDatabase<FinanceDB>> {
-  if (typeof window === "undefined") return Promise.reject(new Error("DB only available in browser"));
+  if (typeof window === "undefined")
+    return Promise.reject(new Error("DB only available in browser"));
   if (!_db) {
     _db = openDB<FinanceDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
-        if (!db.objectStoreNames.contains("income")) db.createObjectStore("income", { keyPath: "id" });
-        if (!db.objectStoreNames.contains("expense")) db.createObjectStore("expense", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("income"))
+          db.createObjectStore("income", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("expense"))
+          db.createObjectStore("expense", { keyPath: "id" });
         if (!db.objectStoreNames.contains("loan")) db.createObjectStore("loan", { keyPath: "id" });
-        if (!db.objectStoreNames.contains("cardemi")) db.createObjectStore("cardemi", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("cardemi"))
+          db.createObjectStore("cardemi", { keyPath: "id" });
         if (!db.objectStoreNames.contains("goal")) db.createObjectStore("goal", { keyPath: "id" });
-        if (!db.objectStoreNames.contains("category")) db.createObjectStore("category", { keyPath: "id" });
-        if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("budget"))
+          db.createObjectStore("budget", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("category"))
+          db.createObjectStore("category", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("settings"))
+          db.createObjectStore("settings", { keyPath: "id" });
       },
     }).then(async (db) => {
       // Seed default categories if empty
@@ -146,23 +164,55 @@ export const DEFAULT_INCOME_CATEGORIES = [
 ];
 
 const DEFAULT_CATEGORIES: Category[] = [
-  ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ id: `exp-${c.name.toLowerCase().replace(/\s+/g, "-")}`, kind: "expense" as const, builtin: true, ...c })),
-  ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ id: `inc-${c.name.toLowerCase().replace(/\s+/g, "-")}`, kind: "income" as const, builtin: true, ...c })),
+  ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({
+    id: `exp-${c.name.toLowerCase().replace(/\s+/g, "-")}`,
+    kind: "expense" as const,
+    builtin: true,
+    ...c,
+  })),
+  ...DEFAULT_INCOME_CATEGORIES.map((c) => ({
+    id: `inc-${c.name.toLowerCase().replace(/\s+/g, "-")}`,
+    kind: "income" as const,
+    builtin: true,
+    ...c,
+  })),
 ];
 
 export async function exportAll(): Promise<string> {
   const db = await getDb();
   const data: Record<string, unknown[]> = {};
-  for (const store of ["income", "expense", "loan", "cardemi", "goal", "category", "settings"] as const) {
+  for (const store of [
+    "income",
+    "expense",
+    "loan",
+    "cardemi",
+    "goal",
+    "budget",
+    "category",
+    "settings",
+  ] as const) {
     data[store] = await db.getAll(store);
   }
-  return JSON.stringify({ version: DB_VERSION, exportedAt: new Date().toISOString(), data }, null, 2);
+  return JSON.stringify(
+    { version: DB_VERSION, exportedAt: new Date().toISOString(), data },
+    null,
+    2,
+  );
 }
 
 export async function importAll(json: string): Promise<void> {
   const parsed = JSON.parse(json) as { data: Record<string, unknown[]> };
   const db = await getDb();
-  for (const store of ["income", "expense", "loan", "cardemi", "goal", "category", "settings"] as const) {
+  for (const store of [
+    "income",
+    "expense",
+    "loan",
+    "cardemi",
+    "goal",
+    "budget",
+    "category",
+    "settings",
+  ] as const) {
     const tx = db.transaction(store, "readwrite");
     await tx.store.clear();
     for (const row of (parsed.data[store] ?? []) as never[]) {
@@ -174,7 +224,15 @@ export async function importAll(json: string): Promise<void> {
 
 export async function resetAll(): Promise<void> {
   const db = await getDb();
-  for (const store of ["income", "expense", "loan", "cardemi", "goal", "category"] as const) {
+  for (const store of [
+    "income",
+    "expense",
+    "loan",
+    "cardemi",
+    "goal",
+    "budget",
+    "category",
+  ] as const) {
     const tx = db.transaction(store, "readwrite");
     await tx.store.clear();
     await tx.done;

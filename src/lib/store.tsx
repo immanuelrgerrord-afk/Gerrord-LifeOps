@@ -1,5 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode, useCallback } from "react";
-import { getDb, type CardEmi, type Category, type Expense, type Goal, type Income, type Loan } from "./db";
+import {
+  getDb,
+  type CardEmi,
+  type Category,
+  type Expense,
+  type Goal,
+  type Income,
+  type Loan,
+  type MonthlyBudget,
+} from "./db";
 import { appConfig } from "./env";
 import { currentYm } from "./format";
 
@@ -10,6 +19,7 @@ interface AllData {
   cardemi: CardEmi[];
   goal: Goal[];
   category: Category[];
+  budget: MonthlyBudget[];
 }
 
 interface Ctx {
@@ -26,7 +36,15 @@ interface Ctx {
 
 const StoreCtx = createContext<Ctx | null>(null);
 
-const EMPTY: AllData = { income: [], expense: [], loan: [], cardemi: [], goal: [], category: [] };
+const EMPTY: AllData = {
+  income: [],
+  expense: [],
+  loan: [],
+  cardemi: [],
+  goal: [],
+  category: [],
+  budget: [],
+};
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -39,7 +57,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
   const [theme, setThemeState] = useState<"system" | "light" | "dark">(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem("lifeops:theme") as "system" | "light" | "dark") ?? appConfig.defaultTheme;
+      return (
+        (localStorage.getItem("lifeops:theme") as "system" | "light" | "dark") ??
+        appConfig.defaultTheme
+      );
     }
     return appConfig.defaultTheme;
   });
@@ -47,16 +68,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const db = await getDb();
-    const [income, expense, loan, cardemi, goal, category, settings] = await Promise.all([
+    const [income, expense, loan, cardemi, goal, category, budget, settings] = await Promise.all([
       db.getAll("income"),
       db.getAll("expense"),
       db.getAll("loan"),
       db.getAll("cardemi"),
       db.getAll("goal"),
       db.getAll("category"),
+      db.getAll("budget"),
       db.get("settings", "app"),
     ]);
-    setData({ income, expense, loan, cardemi, goal, category });
+    setData({ income, expense, loan, cardemi, goal, category, budget });
     if (settings?.userName) setUserNameState(settings.userName);
     setReady(true);
   }, []);
@@ -74,7 +96,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("lifeops:theme", theme);
     const root = document.documentElement;
     const applyTheme = () => {
-      const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      const isDark =
+        theme === "dark" ||
+        (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
       root.classList.toggle("dark", isDark);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", isDark ? "#0d1020" : "#f7f7f5");
@@ -88,14 +112,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((t: "system" | "light" | "dark") => setThemeState(t), []);
 
-  const setUserName = useCallback(async (n: string) => {
-    setUserNameState(n);
-    const db = await getDb();
-    await db.put("settings", { id: "app", theme, userName: n });
-  }, [theme]);
+  const setUserName = useCallback(
+    async (n: string) => {
+      setUserNameState(n);
+      const db = await getDb();
+      await db.put("settings", { id: "app", theme, userName: n });
+    },
+    [theme],
+  );
 
   return (
-    <StoreCtx.Provider value={{ ready, data, ym, setYm, refresh, theme, setTheme, userName, setUserName }}>
+    <StoreCtx.Provider
+      value={{ ready, data, ym, setYm, refresh, theme, setTheme, userName, setUserName }}
+    >
       {children}
     </StoreCtx.Provider>
   );
